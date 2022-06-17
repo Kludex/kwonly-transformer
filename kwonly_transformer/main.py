@@ -31,7 +31,6 @@ class CallArgumentsTransformer(cst.CSTTransformer):
 
     def leave_Call(self, original_node: cst.Call, updated_node: cst.Call) -> cst.Call:
         params = None
-        # NOTE: Can `original_node.func` be an `cst.Attribute`?
         if isinstance(original_node.func, cst.Name):
             params = self.functions.get(original_node.func.value)
         elif isinstance(original_node.func, cst.Attribute):
