@@ -1,7 +1,9 @@
+import sys
 import textwrap
 
 import libcst as cst
 import pytest
+
 from kwonly_transformer import CallArgumentsTransformer, FunctionParametersTransformer
 
 
@@ -115,6 +117,10 @@ from kwonly_transformer import CallArgumentsTransformer, FunctionParametersTrans
             """
             ),
             id="posonly params",
+            marks=pytest.mark.skipif(
+                sys.version_info < (3, 8),
+                reason="Python 3.7 doesn't support posonly arguments.",
+            ),
         ),
         pytest.param(
             textwrap.dedent(
