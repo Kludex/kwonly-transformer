@@ -2,13 +2,17 @@ from typing import Dict
 
 import libcst as cst
 from libcst import SimpleWhitespace
+from libcst.metadata import FullRepoManager, FullyQualifiedNameProvider
 
 # TODO: `functions` dictionary should use <module.function> as name.
 
 
 class FunctionParametersTransformer(cst.CSTTransformer):
+    METADATA_DEPENDENCIES = (FullyQualifiedNameProvider,)
+
+    functions: Dict[str, cst.Parameters] = {}
+
     def __init__(self, threshold: int = 2) -> None:
-        self.functions: Dict[str, cst.Parameters] = {}
         self.threshold = threshold
 
     def leave_FunctionDef(
@@ -20,16 +24,21 @@ class FunctionParametersTransformer(cst.CSTTransformer):
             new_params = updated_node.params.with_changes(
                 params=[], kwonly_params=params_params + kwonly_params
             )
+            print(self.get_metadata(FullyQualifiedNameProvider, original_node))
             self.functions[original_node.name.value] = new_params
             return updated_node.with_changes(params=new_params)
         return updated_node
 
 
 class CallArgumentsTransformer(cst.CSTTransformer):
+    METADATA_DEPENDENCIES = (FullyQualifiedNameProvider,)
+
     def __init__(self, functions: Dict[str, cst.Parameters]) -> None:
         self.functions = functions
 
     def leave_Call(self, original_node: cst.Call, updated_node: cst.Call) -> cst.Call:
+        qualified_name = self.get_metadata(FullyQualifiedNameProvider, original_node)
+        print(qualified_name)
         params = None
         if isinstance(original_node.func, cst.Name):
             params = self.functions.get(original_node.func.value)
